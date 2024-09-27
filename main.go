@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"time"
 )
 
 func main() {
@@ -42,7 +44,7 @@ func (b Brew) recommendedRecipe() Recipe {
 		steps: []Step{
 			{
 				action: Bloom,
-				time:   60,
+				time:   5,
 				amount: int(b.GrindWeight * 2),
 			},
 			{
@@ -86,18 +88,50 @@ func (at ActionType) String() string {
 	return [...]string{"Wait", "Bloom", "Pour", "Swirl"}[at]
 }
 
-func (r Recipe) String() string {
-	fmt.Println(r.steps)
-	var s string
-	for _, step := range r.steps {
-		s += step.action.String()
-		s += " for "
-		s += string(step.time)
+func (s Step) String() string {
+	o := s.action.String()
+	if s.amount > 0 {
+		o += " (" + strconv.Itoa(s.amount) + "g)"
+	}
+	o += " for " + strconv.Itoa(s.time) + " seconds."
+	return o
+}
 
-		s += " seconds."
-		s += "\n"
+func (r Recipe) String() string {
+	var s string
+	for i, step := range r.steps {
+		s += step.String()
+		if i < len(r.steps)-1 {
+			s += "\n"
+		}
 	}
 	return s
+}
+
+func (r Recipe) execute() {
+	for _, step := range r.steps {
+		fmt.Print(step.action)
+		if step.amount > 0 {
+			fmt.Printf(" (%dg)", step.amount)
+		}
+		fmt.Println(" for", step.time, "seconds.")
+		ticker := time.NewTicker(time.Second * 1)
+
+		seconds := step.time
+		for range ticker.C {
+			fmt.Printf("\r%d seconds", seconds)
+			seconds--
+			if seconds < 0 {
+				ticker.Stop()
+				break
+			}
+		}
+		fmt.Println()
+	}
+	fmt.Println("Done! Enjoy your coffee! ☕️")
+}
+
+func (r Recipe) record() {
 }
 
 func brew() {
@@ -116,5 +150,21 @@ func brew() {
 		return
 	}
 
-	fmt.Println(brew.recommendedRecipe())
+	recipe := brew.recommendedRecipe()
+
+	fmt.Println("Recommended recipe is as follows:")
+	fmt.Println(recipe)
+	fmt.Print("Continue? (y/n)")
+
+	var r string
+	_, err = fmt.Scan(&r)
+	if err != nil {
+		fmt.Print("Error parsing input:", err)
+	}
+
+	if r != "y" && r != "Y" {
+		return
+	}
+
+	recipe.execute()
 }
