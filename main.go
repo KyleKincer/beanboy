@@ -44,22 +44,26 @@ func (b Brew) recommendedRecipe() Recipe {
 		steps: []Step{
 			{
 				action: Bloom,
-				time:   5,
+				time:   45,
 				amount: int(b.GrindWeight * 2),
 			},
 			{
 				action: Pour,
-				time:   30,
+				time:   15,
 				amount: int(b.GrindWeight * float32(brewRatio) / 2),
 			},
 			{
 				action: Wait,
-				time:   30,
+				time:   45,
 			},
 			{
 				action: Pour,
-				time:   30,
+				time:   15,
 				amount: int(b.GrindWeight * float32(brewRatio) / 2),
+			},
+			{
+				action: Wait,
+				time:   45,
 			},
 		},
 	}
